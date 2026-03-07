@@ -66,26 +66,26 @@ Each table is identified by a unique **table key**, allowing:
 
 ### 1️⃣ Backend (Laravel)
 
-- Extends the query builder with a `dataTable()` macro  
-- Applies pagination and sorting  
-- Scopes state using a unique **table key**  
-- Returns structured metadata to Inertia  
+- Extends the query builder with a `dataTable()` macro
+- Applies pagination and sorting
+- Scopes state using a unique **table key**
+- Returns structured metadata to Inertia
 
 The backend remains the **single source of truth** for data ordering and limits.
 
 ### 2️⃣ Transport Layer (Inertia.js)
 
-- Transfers paginated data and metadata  
-- Preserves state between visits  
-- Enables partial reloads  
-- Keeps URL state predictable  
+- Transfers paginated data and metadata
+- Preserves state between visits
+- Enables partial reloads
+- Keeps URL state predictable
 
 ### 3️⃣ Frontend (Vue 3)
 
-- `useDataTable(tableKey)` manages reactive table state  
-- Syncs with Inertia responses  
-- Triggers reloads when sorting or paging changes  
-- Allows multiple independent tables on the same page  
+- `useDataTable(tableKey)` manages reactive table state
+- Syncs with Inertia responses
+- Triggers reloads when sorting or paging changes
+- Allows multiple independent tables on the same page
 
 ---
 
@@ -100,11 +100,58 @@ The backend remains the **single source of truth** for data ordering and limits.
 
 ---
 
+## 🚀 Usage
+
+Usage instructions live in the individual package repositories.
+
+### Laravel Backend
+
+```php
+return Inertia::render(..., [
+    // It works with JsonResource wrapping
+    'users' => JsonResource::collection(User::dataTable('users')),
+    // and also without wrapping
+    'users' => User::dataTable('users'),
+]);
+```
+
+### Vue Frontend
+
+```ts
+import { useDataTable } from "@starter-solutions/inertia-data-table-vue";
+
+const userTable = useDataTable<User>("users");
+
+userTable.data; // User[]
+userTable.pagination; // NormalizedPagination
+
+// You can use the pagination navigation methods
+userTable.firstPage();
+userTable.lastPage();
+userTable.previousPage();
+userTable.nextPage();
+userTable.goToPage(3);
+
+// Or use the helper methods to set pagination parameters
+userTable.sortBy("name");
+userTable.itemsPerPage(25);
+
+// You can also pass all parameters at once
+userTable.reloadData({
+    page: 3,
+    per_page: 15,
+    sort_by: "email",
+    descending: true,
+});
+```
+
+---
+
 ## 📊 Version Compatibility
 
-| Laravel Package | Vue Package | Laravel | Vue | Inertia |
-|-----------------|------------|---------|-----|----------|
-| 0.1.x           | 0.1.x      | 10.x+   | 3.3+ | 2.x      |
+| Laravel Package | Vue Package | Laravel | Vue  | Inertia |
+| --------------- | ----------- | ------- | ---- | ------- |
+| 0.1.x           | 0.1.x       | 10.x+   | 3.3+ | 2.x     |
 
 > Compatibility will be updated as new major versions are released.
 
