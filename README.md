@@ -151,7 +151,7 @@ userTable.reloadData({
 
 | Laravel Package | Vue Package | Laravel | Vue  | Inertia |
 | --------------- | ----------- | ------- | ---- | ------- |
-| 0.1.x           | 0.1.x       | 10.x+   | 3.3+ | 2.x     |
+| 0.2.x           | 0.3.x       | 10.x+   | 3.3+ | 2.x     |
 
 > Compatibility will be updated as new major versions are released.
 
