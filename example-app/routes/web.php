@@ -7,17 +7,13 @@ use Inertia\Inertia;
 
 Route::get('/', function () {
     $allowedSorts = ['id', 'name', 'email', 'created_at'];
-    $requestedSort = request('sort_by', 'id');
-    $sortBy = in_array($requestedSort, $allowedSorts, true) ? $requestedSort : 'id';
 
     $users = User::query()
         ->select(['id', 'name', 'email', 'created_at'])
         ->dataTable(
             tableKey: 'users',
-            perPage: null,
             columns: ['id', 'name', 'email', 'created_at'],
-            sortBy: $sortBy,
-            filterUsing: function (Builder $query, ?array $filter): void {
+            filterUsing: function (Builder $query, $filter): void {
                 $search = trim((string) ($filter['search'] ?? ''));
 
                 if ($search === '') {

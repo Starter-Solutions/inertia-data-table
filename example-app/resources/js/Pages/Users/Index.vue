@@ -27,6 +27,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 const {
     data: users,
     pagination,
+    filter,
+    additional,
     firstPage,
     previousPage,
     nextPage,
@@ -38,7 +40,7 @@ const {
     resetFilters,
 } = useDataTable('users', { useUrlQuery: true });
 
-const search = ref('');
+const search = ref(filter.search ?? '');
 
 const columns = [
     { key: 'id', label: 'ID' },
@@ -208,5 +210,7 @@ const SortIcon = (key) => {
                 </Pagination>
             </div>
         </Card>
+        <pre class="bg-blue-400/40">{{ filter }}</pre>
+        <pre class="bg-red-400/40">{{ additional }}</pre>
     </main>
 </template>
