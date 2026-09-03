@@ -156,6 +156,7 @@ userTable.reloadData({
 | 0.4.x           | 0.4.x       | (13.x)  | "    | (3.x)   |
 | 0.5.x           | 0.5.x       | "       | "    | "       |
 | 0.6.x           | 0.6.x       | "       | "    | "       |
+| 0.7.x           | 0.7.x       | "       | "    | "       |
 
 > Compatibility will be updated as new major versions are released.
 
