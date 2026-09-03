@@ -112,6 +112,8 @@ return Inertia::render(..., [
     'users' => JsonResource::collection(User::dataTable('users')),
     // and also without wrapping
     'users' => User::dataTable('users'),
+    // Collections can be sorted and paginated in memory as well
+    'users' => collect($users)->dataTable('users'),
 ]);
 ```
 
