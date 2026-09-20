@@ -37,6 +37,7 @@ class ExampleTest extends TestCase
                 ->component('MultipleTables/Index')
                 ->has('users.data', 5)
                 ->where('users.total', 7)
+                ->where('users.allowed_sorts', ['id', 'name', 'email', 'email_verified_at'])
                 ->has('products.data', 5)
                 ->where('products.total', 8)
                 ->has('orders.data', 5)
