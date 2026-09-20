@@ -62,24 +62,28 @@ Route::get('/multiple-tables', function () {
             columns: ['id', 'name', 'email', 'email_verified_at'],
             filterUsing: $search(['name', 'email']),
             defaultPerPage: 5,
+            allowedSorts: ['id', 'name', 'email', 'email_verified_at'],
         ),
         'products' => Product::query()->dataTable(
             tableKey: 'products',
             columns: ['id', 'name', 'sku', 'stock', 'price', 'is_active'],
             filterUsing: $search(['name', 'sku']),
             defaultPerPage: 5,
+            allowedSorts: ['id', 'name', 'sku', 'stock', 'price', 'is_active'],
         ),
         'orders' => Order::query()->dataTable(
             tableKey: 'orders',
             columns: ['id', 'order_number', 'customer_name', 'status', 'total', 'ordered_at'],
             filterUsing: $search(['order_number', 'customer_name', 'status']),
             defaultPerPage: 5,
+            allowedSorts: ['id', 'order_number', 'customer_name', 'status', 'total', 'ordered_at'],
         ),
         'tickets' => SupportTicket::query()->dataTable(
             tableKey: 'tickets',
             columns: ['id', 'subject', 'requester_email', 'priority', 'is_resolved', 'last_reply_at'],
             filterUsing: $search(['subject', 'requester_email', 'priority']),
             defaultPerPage: 5,
+            allowedSorts: ['id', 'subject', 'requester_email', 'priority', 'is_resolved', 'last_reply_at'],
         ),
     ]);
 })->name('multiple-tables');

@@ -9,6 +9,7 @@ const tables = [
         columns: [
             { key: 'id', label: 'ID' }, { key: 'name', label: 'Name' }, { key: 'email', label: 'Email' },
             { key: 'email_verified_at', label: 'Verified', format: 'date' },
+            { key: 'frontend_only', label: 'Missing backend column' },
         ],
     },
     {

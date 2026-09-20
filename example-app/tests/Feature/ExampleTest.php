@@ -58,4 +58,15 @@ class ExampleTest extends TestCase
                 ->where('products.total', 1)
                 ->where('products.data.0.name', 'Matching product'));
     }
+
+    public function test_an_invalid_sort_does_not_apply_ordering_without_a_default_sort(): void
+    {
+        User::factory(2)->create();
+
+        $this->get('/multiple-tables?tableKey=users&sort_by=frontend_only')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('users.sort_by', null)
+                ->has('users.data', 2));
+    }
 }
