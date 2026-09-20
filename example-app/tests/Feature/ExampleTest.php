@@ -2,11 +2,18 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\SupportTicket;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * A basic test example.
      */
@@ -15,5 +22,40 @@ class ExampleTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200);
+    }
+
+    public function test_multiple_tables_page_contains_four_independent_data_tables(): void
+    {
+        User::factory(7)->create();
+        Product::factory(8)->create();
+        Order::factory(9)->create();
+        SupportTicket::factory(10)->create();
+
+        $this->get('/multiple-tables')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('MultipleTables/Index')
+                ->has('users.data', 5)
+                ->where('users.total', 7)
+                ->has('products.data', 5)
+                ->where('products.total', 8)
+                ->has('orders.data', 5)
+                ->where('orders.total', 9)
+                ->has('tickets.data', 5)
+                ->where('tickets.total', 10));
+    }
+
+    public function test_a_table_query_only_changes_the_targeted_table(): void
+    {
+        User::factory(2)->create();
+        Product::factory()->create(['name' => 'Matching product']);
+        Product::factory()->create(['name' => 'Other product']);
+
+        $this->get('/multiple-tables?tableKey=products&filter[search]=Matching')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('users.total', 2)
+                ->where('products.total', 1)
+                ->where('products.data.0.name', 'Matching product'));
     }
 }

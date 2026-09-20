@@ -1,5 +1,5 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { useDataTable } from '@starter-solutions/inertia-data-table-vue';
 import {
     ArrowDown,
@@ -97,6 +97,9 @@ const SortIcon = (key) => {
             <div>
                 <p class="text-muted-foreground text-sm font-medium uppercase tracking-wide">Local package test</p>
                 <h1 class="mt-1 text-3xl font-semibold tracking-normal">Inertia Data Table</h1>
+                <Button as-child class="mt-3" size="sm" variant="outline">
+                    <Link href="/multiple-tables">Open four-table test page</Link>
+                </Button>
             </div>
 
             <form class="flex w-full gap-2 md:w-auto" @submit.prevent="applySearch">

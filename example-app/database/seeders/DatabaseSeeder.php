@@ -21,5 +21,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::factory(49)->create();
+        $this->call(MultipleTablesSeeder::class);
     }
 }
