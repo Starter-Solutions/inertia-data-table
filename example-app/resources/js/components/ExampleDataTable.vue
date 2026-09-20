@@ -24,7 +24,10 @@ const {
     sortBy,
     setFilter,
     resetFilters,
-} = useDataTable(props.tableKey, { useUrlQuery: true });
+} = useDataTable(props.tableKey, {
+    useUrlQuery: true,
+    replaceHistory: true,
+});
 
 const search = ref(filter.search ?? '');
 const pageSize = computed({
