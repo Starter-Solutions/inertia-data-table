@@ -41,8 +41,10 @@ class ExampleTest extends TestCase
                 ->has('products.data', 5)
                 ->where('products.total', 8)
                 ->where('products.allowed_sorts', ['id', 'name', 'price'])
+                ->where('products.sort_by', null)
                 ->has('orders.data', 5)
                 ->where('orders.total', 9)
+                ->where('orders.sort_by', 'ordered_at')
                 ->has('tickets.data', 5)
                 ->where('tickets.total', 10));
     }

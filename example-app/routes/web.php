@@ -68,6 +68,7 @@ Route::get('/multiple-tables', function () {
             columns: ['id', 'name', 'sku', 'stock', 'price', 'is_active'],
             filterUsing: $search(['name', 'sku']),
             defaultPerPage: 5,
+            defaultSortBy: 'sku',
             allowedSorts: ['id', 'name', 'price'],
         ),
         'orders' => Order::query()->dataTable(
@@ -75,6 +76,7 @@ Route::get('/multiple-tables', function () {
             columns: ['id', 'order_number', 'customer_name', 'status', 'total', 'ordered_at'],
             filterUsing: $search(['order_number', 'customer_name', 'status']),
             defaultPerPage: 5,
+            defaultSortBy: 'ordered_at',
         ),
         'tickets' => SupportTicket::query()->dataTable(
             tableKey: 'tickets',
