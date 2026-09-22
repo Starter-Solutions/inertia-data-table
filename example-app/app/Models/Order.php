@@ -6,8 +6,10 @@ use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use StarterSolutions\InertiaDataTable\Attributes\AllowedSorts;
 
 #[Fillable(['order_number', 'customer_name', 'status', 'total', 'ordered_at'])]
+#[AllowedSorts(['id', 'order_number', 'customer_name', 'status', 'total', 'ordered_at'])]
 class Order extends Model
 {
     /** @use HasFactory<OrderFactory> */

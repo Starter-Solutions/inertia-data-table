@@ -40,6 +40,7 @@ class ExampleTest extends TestCase
                 ->where('users.allowed_sorts', ['id', 'name', 'email', 'email_verified_at'])
                 ->has('products.data', 5)
                 ->where('products.total', 8)
+                ->where('products.allowed_sorts', ['id', 'name', 'price'])
                 ->has('orders.data', 5)
                 ->where('orders.total', 9)
                 ->has('tickets.data', 5)

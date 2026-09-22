@@ -6,8 +6,10 @@ use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use StarterSolutions\InertiaDataTable\Attributes\AllowedSorts;
 
 #[Fillable(['name', 'sku', 'stock', 'price', 'is_active'])]
+#[AllowedSorts(['id', 'name', 'sku', 'stock', 'price', 'is_active'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
