@@ -35,6 +35,7 @@ const {
     lastPage,
     goToPage,
     itemsPerPage,
+    isSortable,
     sortBy,
     setFilter,
     resetFilters,
@@ -146,6 +147,7 @@ const SortIcon = (key) => {
                                     size="sm"
                                     type="button"
                                     variant="ghost"
+                                    :disabled="!isSortable(column.key)"
                                     @click="sortBy(column.key)"
                                 >
                                     {{ column.label }}

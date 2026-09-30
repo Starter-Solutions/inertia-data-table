@@ -17,7 +17,7 @@ const props = defineProps({
 const {
     data,
     pagination,
-    allowedSorts,
+    isSortable,
     filter,
     previousPage,
     nextPage,
@@ -97,7 +97,7 @@ const displayValue = (row, column) => {
                 <TableHeader>
                     <TableRow class="bg-muted/40 hover:bg-muted/40">
                         <TableHead v-for="column in columns" :key="column.key">
-                            <Button v-if="allowedSorts.includes(column.key)" class="-ml-3 h-8 px-3" size="sm" type="button" variant="ghost" @click="sortBy(column.key)">
+                            <Button v-if="isSortable(column.key)" class="-ml-3 h-8 px-3" size="sm" type="button" variant="ghost" @click="sortBy(column.key)">
                                 {{ column.label }}
                                 <component :is="sortIcon(column.key)" />
                             </Button>
