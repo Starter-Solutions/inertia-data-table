@@ -104,6 +104,22 @@ class ExampleTest extends TestCase
             ->assertJsonPath('data.1.name', 'Longest name');
     }
 
+    public function test_an_allowed_sort_for_a_missing_model_column_throws_an_exception(): void
+    {
+        User::factory()->create();
+
+        Route::get('/missing-sort-test', fn () => User::query()->dataTable(
+            tableKey: 'missing-sort-users',
+            allowedSorts: ['missing_attribute'],
+        ));
+
+        $this->withoutExceptionHandling();
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The column [missing_attribute] used by sort [missing_attribute] does not exist on [App\Models\User].');
+
+        $this->get('/missing-sort-test?tableKey=missing-sort-users&sort_by=missing_attribute');
+    }
+
     public function test_multiple_tables_page_contains_four_independent_data_tables(): void
     {
         User::factory(7)->create();
