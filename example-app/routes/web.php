@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    $allowedSorts = ['id', 'name', 'email', 'created_at'];
+    $allowedSorts = ['id', 'name', 'email', 'created_at', 'User.profile.display_name', 'User.profile.city', 'User.profile.company'];
 
     $users = User::query()
+        ->with('profile')
         ->select(['id', 'name', 'email', 'created_at'])
         ->dataTable(
             tableKey: 'users',
@@ -32,6 +33,7 @@ Route::get('/', function () {
             additional: [
                 'allowedSorts' => $allowedSorts,
             ],
+            allowedSorts: $allowedSorts,
         );
 
     return Inertia::render('Users/Index', [

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Profile;
 use App\Models\SupportTicket;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,6 +23,39 @@ class ExampleTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200);
+    }
+
+    public function test_the_single_table_contains_eager_loaded_profile_columns(): void
+    {
+        $user = User::factory()->create();
+        Profile::factory()->for($user)->create([
+            'display_name' => 'Visible profile',
+            'city' => 'Berlin',
+            'company' => 'Starter Solutions',
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('users.data.0.profile.display_name', 'Visible profile')
+                ->where('users.data.0.profile.city', 'Berlin')
+                ->where('users.data.0.profile.company', 'Starter Solutions'));
+    }
+
+    public function test_the_single_table_can_sort_by_a_related_profile_column(): void
+    {
+        $second = User::factory()->create(['name' => 'Second']);
+        Profile::factory()->for($second)->create(['display_name' => 'Zulu']);
+
+        $first = User::factory()->create(['name' => 'First']);
+        Profile::factory()->for($first)->create(['display_name' => 'Alpha']);
+
+        $this->get('/?tableKey=users&sort_by=User.profile.display_name&descending=0')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('users.sort_by', 'User.profile.display_name')
+                ->where('users.data.0.name', 'First')
+                ->where('users.data.1.name', 'Second'));
     }
 
     public function test_multiple_tables_page_contains_four_independent_data_tables(): void

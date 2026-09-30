@@ -46,6 +46,9 @@ const columns = [
     { key: 'id', label: 'ID' },
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'Email' },
+    { key: 'User.profile.display_name', label: 'Display name' },
+    { key: 'User.profile.city', label: 'City' },
+    { key: 'User.profile.company', label: 'Company' },
     { key: 'created_at', label: 'Created' },
 ];
 
@@ -154,10 +157,13 @@ const SortIcon = (key) => {
                             <TableCell class="font-medium">{{ user.id }}</TableCell>
                             <TableCell>{{ user.name }}</TableCell>
                             <TableCell class="text-muted-foreground">{{ user.email }}</TableCell>
+                            <TableCell>{{ user.profile?.display_name ?? '—' }}</TableCell>
+                            <TableCell class="text-muted-foreground">{{ user.profile?.city ?? '—' }}</TableCell>
+                            <TableCell class="text-muted-foreground">{{ user.profile?.company ?? '—' }}</TableCell>
                             <TableCell class="text-muted-foreground">{{ formatDate(user.created_at) }}</TableCell>
                         </TableRow>
                         <TableRow v-if="users.length === 0">
-                            <TableCell class="text-muted-foreground h-24 text-center" colspan="4">
+                            <TableCell class="text-muted-foreground h-24 text-center" :colspan="columns.length">
                                 No users found.
                             </TableCell>
                         </TableRow>

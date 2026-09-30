@@ -15,12 +15,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
+        $testUser = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
 
-        User::factory(49)->create();
+        $testUser->profile()->create([
+            'display_name' => 'tester',
+            'city' => 'Berlin',
+            'company' => 'Starter Solutions',
+        ]);
+
+        User::factory(49)->create()->each(fn (User $user) => $user->profile()->create([
+            'display_name' => fake()->userName(),
+            'city' => fake()->city(),
+            'company' => fake()->company(),
+        ]));
         $this->call(MultipleTablesSeeder::class);
     }
 }
