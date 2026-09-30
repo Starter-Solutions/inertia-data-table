@@ -14,7 +14,7 @@ use StarterSolutions\InertiaDataTable\Attributes\AllowedSorts;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
-#[AllowedSorts(['id', 'name', 'email', 'email_verified_at'])]
+#[AllowedSorts(['id', 'name', 'email', 'email_verified_at', 'created_at'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */

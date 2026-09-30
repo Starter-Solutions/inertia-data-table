@@ -50,10 +50,20 @@ class ExampleTest extends TestCase
         $first = User::factory()->create(['name' => 'First']);
         Profile::factory()->for($first)->create(['display_name' => 'Alpha']);
 
-        $this->get('/?tableKey=users&sort_by=User.profile.display_name&descending=0')
+        $this->get('/?tableKey=users&sort_by=profile.display_name&descending=0')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('users.sort_by', 'User.profile.display_name')
+                ->where('users.sort_by', 'profile.display_name')
+                ->where('users.allowed_sorts', [
+                    'id',
+                    'name',
+                    'email',
+                    'email_verified_at',
+                    'created_at',
+                    'profile.display_name',
+                    'profile.city',
+                    'profile.company',
+                ])
                 ->where('users.data.0.name', 'First')
                 ->where('users.data.1.name', 'Second'));
     }
@@ -71,7 +81,7 @@ class ExampleTest extends TestCase
                 ->component('MultipleTables/Index')
                 ->has('users.data', 5)
                 ->where('users.total', 7)
-                ->where('users.allowed_sorts', ['id', 'name', 'email', 'email_verified_at'])
+                ->where('users.allowed_sorts', ['id', 'name', 'email', 'email_verified_at', 'created_at'])
                 ->has('products.data', 5)
                 ->where('products.total', 8)
                 ->where('products.allowed_sorts', ['id', 'name', 'price'])

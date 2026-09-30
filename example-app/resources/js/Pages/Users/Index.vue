@@ -46,9 +46,9 @@ const columns = [
     { key: 'id', label: 'ID' },
     { key: 'name', label: 'Name' },
     { key: 'email', label: 'Email' },
-    { key: 'User.profile.display_name', label: 'Display name' },
-    { key: 'User.profile.city', label: 'City' },
-    { key: 'User.profile.company', label: 'Company' },
+    { key: 'profile.display_name', label: 'Display name' },
+    { key: 'profile.city', label: 'City' },
+    { key: 'profile.company', label: 'Company' },
     { key: 'created_at', label: 'Created' },
 ];
 
