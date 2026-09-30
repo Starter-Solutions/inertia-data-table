@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\DataTableSorts\NameLengthSort;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -15,13 +16,13 @@ use StarterSolutions\InertiaDataTable\Attributes\AllowedSorts;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
-#[AllowedSorts(['id', 'name', 'display_name' => 'name', 'email', 'email_verified_at', 'created_at'])]
+#[AllowedSorts(['id', 'name', 'display_name' => 'name', 'name_length' => NameLengthSort::class, 'email', 'email_verified_at', 'created_at'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    protected $appends = ['display_name'];
+    protected $appends = ['display_name', 'name_length'];
 
     public function profile(): HasOne
     {
@@ -31,6 +32,11 @@ class User extends Authenticatable
     protected function displayName(): Attribute
     {
         return Attribute::get(fn (): string => strtoupper($this->name));
+    }
+
+    protected function nameLength(): Attribute
+    {
+        return Attribute::get(fn (): int => mb_strlen($this->name));
     }
 
     /**

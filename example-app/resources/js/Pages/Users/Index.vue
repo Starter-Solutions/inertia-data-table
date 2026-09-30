@@ -46,6 +46,7 @@ const columns = [
     { key: 'id', label: 'ID' },
     { key: 'name', label: 'Name' },
     { key: 'display_name', label: 'Display attribute' },
+    { key: 'name_length', label: 'Name length' },
     { key: 'email', label: 'Email' },
     { key: 'profile.display_name', label: 'Display name' },
     { key: 'profile.city', label: 'City' },
@@ -158,6 +159,7 @@ const SortIcon = (key) => {
                             <TableCell class="font-medium">{{ user.id }}</TableCell>
                             <TableCell>{{ user.name }}</TableCell>
                             <TableCell>{{ user.display_name }}</TableCell>
+                            <TableCell class="text-muted-foreground">{{ user.name_length }}</TableCell>
                             <TableCell class="text-muted-foreground">{{ user.email }}</TableCell>
                             <TableCell>{{ user.profile?.display_name ?? '—' }}</TableCell>
                             <TableCell class="text-muted-foreground">{{ user.profile?.city ?? '—' }}</TableCell>

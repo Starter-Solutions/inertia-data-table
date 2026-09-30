@@ -61,6 +61,7 @@ class ExampleTest extends TestCase
                     'id',
                     'name',
                     'display_name',
+                    'name_length',
                     'email',
                     'email_verified_at',
                     'created_at',
@@ -103,6 +104,45 @@ class ExampleTest extends TestCase
             ->assertJsonPath('allowed_sorts', ['name_length'])
             ->assertJsonPath('data.0.name', 'Tiny')
             ->assertJsonPath('data.1.name', 'Longest name');
+    }
+
+    public function test_an_allowed_sorts_attribute_can_reference_a_sort_callback_class(): void
+    {
+        User::factory()->create(['name' => 'Longest name']);
+        User::factory()->create(['name' => 'Tiny']);
+
+        $this->get('/?tableKey=users&sort_by=name_length&descending=0')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('users.sort_by', 'name_length')
+                ->where('users.data.0.name', 'Tiny')
+                ->where('users.data.0.name_length', 4)
+                ->where('users.data.1.name', 'Longest name')
+                ->where('users.data.1.name_length', 12));
+    }
+
+    public function test_an_invalid_sort_callback_class_is_logged_and_ignored(): void
+    {
+        User::factory()->create();
+        Log::spy();
+
+        Route::get('/invalid-callback-sort-test', fn () => User::query()->dataTable(
+            tableKey: 'invalid-callback-users',
+            allowedSorts: ['invalid_callback' => User::class],
+        ));
+
+        $this->get('/invalid-callback-sort-test?tableKey=invalid-callback-users&sort_by=invalid_callback')
+            ->assertOk()
+            ->assertJsonPath('sort_by', null)
+            ->assertJsonPath('allowed_sorts', ['invalid_callback']);
+
+        Log::shouldHaveReceived('warning')->once()->withArgs(
+            fn (string $message, array $context): bool => $message === 'Inertia Data Table ignored an invalid allowed sort.'
+                && $context['table_key'] === 'invalid-callback-users'
+                && $context['sort'] === 'invalid_callback'
+                && $context['callback'] === User::class
+                && $context['reason'] === 'invalid_callback_class',
+        );
     }
 
     public function test_an_allowed_sort_for_a_missing_model_column_is_logged_and_ignored(): void
@@ -174,7 +214,7 @@ class ExampleTest extends TestCase
                 ->component('MultipleTables/Index')
                 ->has('users.data', 5)
                 ->where('users.total', 7)
-                ->where('users.allowed_sorts', ['id', 'name', 'display_name', 'email', 'email_verified_at', 'created_at'])
+                ->where('users.allowed_sorts', ['id', 'name', 'display_name', 'name_length', 'email', 'email_verified_at', 'created_at'])
                 ->has('products.data', 5)
                 ->where('products.total', 8)
                 ->where('products.allowed_sorts', ['id', 'name', 'price'])
