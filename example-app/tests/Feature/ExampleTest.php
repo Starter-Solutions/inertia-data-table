@@ -7,7 +7,9 @@ use App\Models\Product;
 use App\Models\Profile;
 use App\Models\SupportTicket;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -57,6 +59,7 @@ class ExampleTest extends TestCase
                 ->where('users.allowed_sorts', [
                     'id',
                     'name',
+                    'display_name',
                     'email',
                     'email_verified_at',
                     'created_at',
@@ -66,6 +69,39 @@ class ExampleTest extends TestCase
                 ])
                 ->where('users.data.0.name', 'First')
                 ->where('users.data.1.name', 'Second'));
+    }
+
+    public function test_an_accessor_sort_can_map_to_a_database_column(): void
+    {
+        User::factory()->create(['name' => 'Zulu']);
+        User::factory()->create(['name' => 'Alpha']);
+
+        $this->get('/?tableKey=users&sort_by=display_name&descending=0')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('users.sort_by', 'display_name')
+                ->where('users.data.0.display_name', 'ALPHA')
+                ->where('users.data.1.display_name', 'ZULU'));
+    }
+
+    public function test_a_keyed_callback_can_define_a_custom_sort(): void
+    {
+        User::factory()->create(['name' => 'Longest name']);
+        User::factory()->create(['name' => 'Tiny']);
+
+        Route::get('/callback-sort-test', fn () => User::query()->dataTable(
+            tableKey: 'callback-users',
+            allowedSorts: [
+                'name_length' => fn (Builder $query, string $direction) => $query->orderByRaw("length(name) {$direction}"),
+            ],
+        ));
+
+        $this->get('/callback-sort-test?tableKey=callback-users&sort_by=name_length&descending=0')
+            ->assertOk()
+            ->assertJsonPath('sort_by', 'name_length')
+            ->assertJsonPath('allowed_sorts', ['name_length'])
+            ->assertJsonPath('data.0.name', 'Tiny')
+            ->assertJsonPath('data.1.name', 'Longest name');
     }
 
     public function test_multiple_tables_page_contains_four_independent_data_tables(): void
@@ -81,7 +117,7 @@ class ExampleTest extends TestCase
                 ->component('MultipleTables/Index')
                 ->has('users.data', 5)
                 ->where('users.total', 7)
-                ->where('users.allowed_sorts', ['id', 'name', 'email', 'email_verified_at', 'created_at'])
+                ->where('users.allowed_sorts', ['id', 'name', 'display_name', 'email', 'email_verified_at', 'created_at'])
                 ->has('products.data', 5)
                 ->where('products.total', 8)
                 ->where('products.allowed_sorts', ['id', 'name', 'price'])
