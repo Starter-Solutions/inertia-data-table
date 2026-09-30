@@ -9,6 +9,7 @@ use App\Models\SupportTicket;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -104,20 +105,60 @@ class ExampleTest extends TestCase
             ->assertJsonPath('data.1.name', 'Longest name');
     }
 
-    public function test_an_allowed_sort_for_a_missing_model_column_throws_an_exception(): void
+    public function test_an_allowed_sort_for_a_missing_model_column_is_logged_and_ignored(): void
     {
         User::factory()->create();
+        Log::spy();
 
         Route::get('/missing-sort-test', fn () => User::query()->dataTable(
             tableKey: 'missing-sort-users',
             allowedSorts: ['missing_attribute'],
         ));
 
-        $this->withoutExceptionHandling();
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('The column [missing_attribute] used by sort [missing_attribute] does not exist on [App\Models\User].');
+        $this->get('/missing-sort-test?tableKey=missing-sort-users&sort_by=missing_attribute')
+            ->assertOk()
+            ->assertJsonPath('sort_by', null)
+            ->assertJsonPath('allowed_sorts', ['missing_attribute'])
+            ->assertJsonCount(1, 'data');
 
-        $this->get('/missing-sort-test?tableKey=missing-sort-users&sort_by=missing_attribute');
+        Log::shouldHaveReceived('warning')->once()->withArgs(
+            fn (string $message, array $context): bool => $message === 'Inertia Data Table ignored an invalid allowed sort.'
+                && $context['table_key'] === 'missing-sort-users'
+                && $context['model'] === User::class
+                && $context['table'] === 'users'
+                && $context['sort'] === 'missing_attribute'
+                && $context['column'] === 'missing_attribute'
+                && $context['reason'] === 'column_not_found',
+        );
+    }
+
+    public function test_an_allowed_sort_for_a_missing_relation_column_is_logged_and_ignored(): void
+    {
+        User::factory()->create();
+        Log::spy();
+
+        Route::get('/missing-relation-sort-test', fn () => User::query()
+            ->with('profile')
+            ->dataTable(
+                tableKey: 'missing-relation-sort-users',
+                allowedSorts: ['profile.missing_attribute'],
+            ));
+
+        $this->get('/missing-relation-sort-test?tableKey=missing-relation-sort-users&sort_by=profile.missing_attribute')
+            ->assertOk()
+            ->assertJsonPath('sort_by', null)
+            ->assertJsonCount(1, 'data');
+
+        Log::shouldHaveReceived('warning')->once()->withArgs(
+            fn (string $message, array $context): bool => $message === 'Inertia Data Table ignored an invalid allowed sort.'
+                && $context['table_key'] === 'missing-relation-sort-users'
+                && $context['model'] === Profile::class
+                && $context['table'] === 'profiles'
+                && $context['sort'] === 'profile.missing_attribute'
+                && $context['relation'] === 'profile'
+                && $context['column'] === 'missing_attribute'
+                && $context['reason'] === 'related_column_not_found',
+        );
     }
 
     public function test_multiple_tables_page_contains_four_independent_data_tables(): void
