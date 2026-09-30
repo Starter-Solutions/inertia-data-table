@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\DataTableSorts\NameLengthSort;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Profile;
@@ -12,6 +13,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
+use StarterSolutions\InertiaDataTable\Attributes\AllowedSorts;
+use StarterSolutions\InertiaDataTable\Pagination\SortableFilterPaginator;
+use StarterSolutions\InertiaDataTable\Support\EloquentSort;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
@@ -143,6 +147,85 @@ class ExampleTest extends TestCase
                 && $context['callback'] === User::class
                 && $context['reason'] === 'invalid_callback_class',
         );
+    }
+
+    public function test_nested_singular_relations_are_resolved_and_sorted_recursively(): void
+    {
+        $second = User::factory()->create(['name' => 'Zulu']);
+        Profile::factory()->for($second)->create();
+
+        $first = User::factory()->create(['name' => 'Alpha']);
+        Profile::factory()->for($first)->create();
+
+        Route::get('/nested-relation-sort-test', fn () => User::query()
+            ->with('profile.user')
+            ->dataTable(tableKey: 'nested-users'));
+
+        $definitions = AllowedSorts::resolveForQuery(User::query()->with('profile.user'));
+
+        $this->assertSame(NameLengthSort::class, $definitions['profile.user.name_length']);
+
+        $this->get('/nested-relation-sort-test?tableKey=nested-users&sort_by=profile.user.name&descending=0')
+            ->assertOk()
+            ->assertJsonPath('sort_by', 'profile.user.name')
+            ->assertJsonPath('data.0.name', 'Alpha')
+            ->assertJsonPath('data.1.name', 'Zulu');
+    }
+
+    public function test_multi_value_relation_sorts_are_logged_and_require_a_callback(): void
+    {
+        User::factory()->create();
+        Log::spy();
+
+        Route::get('/multi-relation-sort-test', fn () => User::query()
+            ->with('profiles')
+            ->dataTable(tableKey: 'multi-relation-users'));
+
+        $this->get('/multi-relation-sort-test?tableKey=multi-relation-users&sort_by=profiles.city')
+            ->assertOk()
+            ->assertJsonPath('sort_by', null);
+
+        Log::shouldHaveReceived('warning')->once()->withArgs(
+            fn (string $message, array $context): bool => $message === 'Inertia Data Table ignored an invalid allowed sort.'
+                && $context['reason'] === 'unsupported_relation_type'
+                && $context['relation'] === 'profiles',
+        );
+    }
+
+    public function test_unkeyed_callback_classes_are_logged_and_not_exposed(): void
+    {
+        Log::spy();
+
+        $this->assertSame([], EloquentSort::keys([NameLengthSort::class]));
+
+        Log::shouldHaveReceived('warning')->once()->withArgs(
+            fn (string $message, array $context): bool => $message === 'Inertia Data Table ignored an unkeyed callback sort.'
+                && $context['reason'] === 'callback_sort_requires_string_key'
+                && $context['callback'] === NameLengthSort::class,
+        );
+    }
+
+    public function test_allowed_sorts_preserves_null_and_empty_list_semantics(): void
+    {
+        $unrestricted = new SortableFilterPaginator(
+            items: collect(),
+            total: 0,
+            perPage: 10,
+            currentPage: 1,
+            allowedSorts: null,
+        );
+        $disabled = new SortableFilterPaginator(
+            items: collect(),
+            total: 0,
+            perPage: 10,
+            currentPage: 1,
+            allowedSorts: [],
+        );
+
+        $this->assertNull($unrestricted->getAllowedSorts());
+        $this->assertNull($unrestricted->toArray()['allowed_sorts']);
+        $this->assertSame([], $disabled->getAllowedSorts());
+        $this->assertSame([], $disabled->toArray()['allowed_sorts']);
     }
 
     public function test_an_allowed_sort_for_a_missing_model_column_is_logged_and_ignored(): void
