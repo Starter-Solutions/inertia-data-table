@@ -27,9 +27,10 @@ https://github.com/starter-solutions/inertia-data-table-laravel
 
 Provides:
 
-- Query builder macro
+- Eloquent, query-builder, and collection macros
 - Pagination handling
-- Sorting logic
+- Relation, accessor, and callback sorting
+- Model-based sort whitelists
 - Table key isolation
 - Inertia response integration
 
@@ -46,7 +47,8 @@ https://github.com/starter-solutions/inertia-data-table-vue
 Provides:
 
 - `useDataTable()` composable
-- Optional Vue components
+- Normalized flat and `JsonResource` pagination
+- Backend-driven `isSortable()` state
 - State synchronization
 - Inertia router integration
 - TypeScript support
@@ -102,18 +104,32 @@ The backend remains the **single source of truth** for data ordering and limits.
 
 ## 🚀 Usage
 
-Usage instructions live in the individual package repositories.
+Install both packages:
+
+```bash
+composer require starter-solutions/inertia-data-table
+npm install @starter-solutions/inertia-data-table-vue
+```
+
+Complete API documentation lives in the individual package repositories. The following example shows the minimum end-to-end setup.
 
 ### Laravel Backend
 
 ```php
-return Inertia::render(..., [
-    // It works with JsonResource wrapping
-    'users' => JsonResource::collection(User::dataTable('users')),
-    // and also without wrapping
-    'users' => User::dataTable('users'),
-    // Collections can be sorted and paginated in memory as well
-    'users' => collect($users)->dataTable('users'),
+use StarterSolutions\InertiaDataTable\Attributes\AllowedSorts;
+
+#[AllowedSorts(['id', 'name', 'email'])]
+class User extends Model
+{
+}
+
+return Inertia::render('Users/Index', [
+    'users' => User::query()->dataTable(
+        tableKey: 'users',
+        defaultPerPage: 25,
+        defaultSortBy: 'name',
+        defaultDescending: false,
+    ),
 ]);
 ```
 
@@ -124,8 +140,9 @@ import { useDataTable } from "@starter-solutions/inertia-data-table-vue";
 
 const userTable = useDataTable<User>("users");
 
-userTable.data; // User[]
-userTable.pagination; // NormalizedPagination
+userTable.data.value; // User[]
+userTable.pagination.value; // NormalizedPagination
+userTable.isSortable("name"); // true
 
 // You can use the pagination navigation methods
 userTable.firstPage();
@@ -139,13 +156,50 @@ userTable.sortBy("name");
 userTable.itemsPerPage(25);
 
 // You can also pass all parameters at once
-userTable.reloadData({
+userTable.reload({
     page: 3,
     per_page: 15,
     sort_by: "email",
     descending: true,
 });
 ```
+
+In Vue templates, returned refs such as `data` and `pagination` are unwrapped automatically.
+
+### Sorting relations and accessors
+
+Eager-loaded singular relations contribute their own model sort keys:
+
+```php
+#[AllowedSorts(['id', 'name'])]
+class User extends Model
+{
+    public function profile(): HasOne
+    {
+        return $this->hasOne(Profile::class);
+    }
+}
+
+#[AllowedSorts([
+    'city',
+    'display_name' => 'name',
+])]
+class Profile extends Model
+{
+}
+
+$users = User::query()
+    ->with('profile')
+    ->dataTable('users');
+```
+
+The frontend receives `profile.city` and `profile.display_name` in `allowed_sorts`. Nested singular relations are resolved recursively. Multi-value relations require an explicit custom sort callback.
+
+The metadata keeps three states distinct:
+
+- `allowed_sorts: null` means unrestricted base-model columns
+- `allowed_sorts: []` disables sorting
+- A non-empty list enables only the listed public keys
 
 ---
 
