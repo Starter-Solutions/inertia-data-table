@@ -12,5 +12,5 @@ return [
 
     'default_per_page' => 10,
     'default_sort_by' => 'id',
-    'default_decending' => true,
+    'default_descending' => true,
 ];

@@ -10,6 +10,8 @@ use App\Models\SupportTicket;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -30,6 +32,37 @@ class ExampleTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200);
+    }
+
+    public function test_the_correctly_spelled_default_descending_config_is_used(): void
+    {
+        Config::set('inertia-data-table.default_descending', false);
+
+        User::factory()->create();
+
+        Route::get('/query-default-descending-test', fn () => DB::table('users')->dataTable(
+            tableKey: 'query-users',
+            defaultSortBy: 'id',
+        ));
+        Route::get('/collection-default-descending-test', fn () => collect([
+            ['id' => 1, 'name' => 'Example'],
+        ])->dataTable(
+            tableKey: 'collection-users',
+            defaultSortBy: 'id',
+        ));
+
+        $this->get('/?tableKey=users')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('users.descending', false));
+
+        $this->get('/query-default-descending-test?tableKey=query-users')
+            ->assertOk()
+            ->assertJsonPath('descending', false);
+
+        $this->get('/collection-default-descending-test?tableKey=collection-users')
+            ->assertOk()
+            ->assertJsonPath('descending', false);
     }
 
     public function test_the_single_table_contains_eager_loaded_profile_columns(): void
